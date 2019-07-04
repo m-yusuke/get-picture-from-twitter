@@ -11,6 +11,7 @@ import traceback
 import requests
 import getopt
 import argparse
+from joblib import Parallel, delayed
 
 def setDriver(options=None):
     driver = webdriver.Chrome(executable_path='./chromedriver',options=options)
@@ -46,6 +47,9 @@ def download_img(url,file_dir):
         print("")
         print("'{0}'is already exist".format(file_name))
 
+def multi_download(url, get_limit, file_dir):
+        download_img(url,file_dir)
+
 def get_urls(tweet, picture_urls,flags):
     date = tweet.find('a',class_='tweet-timestamp')['title']
     img = tweet.find_all('div', class_='js-adaptive-photo')
@@ -75,6 +79,9 @@ def arg_parser(flags):
     parser.add_argument('-H', "--head",
             help='display browser.(default:False)',
             action = "store_false",default = True)
+    parser.add_argument("--parallel",
+            help='Parallelize download.(default:False)',
+            action = "store_true",default = False)
     parser.add_argument('-f', "--followers",
             help='adapt to followers tweet.(default:False)',
             action = "store_true")
@@ -101,10 +108,11 @@ def arg_parser(flags):
     flags['password'] = args.Password
     flags['number'] = args.N
     flags['headless'] = args.head
+    flags['parallel'] = args.parallel
 
 def main():
     SYS_STATUS = 0
-    flags = {'followers':False,'media':False,'likes':True,'headless':True,'target':"i",'userID':False,'password':False,'number':20}
+    flags = {'followers':False,'media':False,'likes':True,'headless':True,'target':"i",'userID':False,'password':False,'number':20, 'parallel':False}
     arg_parser(flags)
     if flags['userID'] == False or flags['password'] == False:
         userID = input('Please, input your userID:')
@@ -173,13 +181,16 @@ def main():
                 continue
         i=0
         print("Picture downloading...")
-        for pic_url in picture_urls:
-            if i >= get_limit:
-                break
-            download_img(pic_url,file_dir)
-            print("\r{0:d}(done)/{1:d}".format(i+1,get_limit),end="")
-            i+=1
-        print("")
+        if flags['parallel']:
+            Parallel(n_jobs=-1, verbose=10)( [delayed(multi_download)(pic_url, get_limit, file_dir) for pic_url in picture_urls[:get_limit]] )
+        else:
+            for pic_url in picture_urls:
+                if i >= get_limit:
+                    break
+                download_img(pic_url,file_dir)
+                print("\r{0:d}(done)/{1:d}".format(i+1,get_limit),end="")
+                i+=1
+            print("")
         print("Download Complete")
 
     except:
