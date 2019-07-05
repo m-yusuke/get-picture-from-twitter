@@ -11,7 +11,7 @@ import traceback
 import requests
 import getopt
 import argparse
-from joblib import Parallel, delayed
+from joblib import parallel_backend, Parallel, delayed
 
 def setDriver(options=None):
     driver = webdriver.Chrome(executable_path='./chromedriver',options=options)
@@ -82,6 +82,9 @@ def arg_parser(flags):
     parser.add_argument("--parallel",
             help='Parallelize download.(default:False)',
             action = "store_true",default = False)
+    parser.add_argument("--thread",
+            help='do with multi thread. use with --parallel option(default:False)',
+            action = "store_true",default = False)
     parser.add_argument('-f', "--followers",
             help='adapt to followers tweet.(default:False)',
             action = "store_true")
@@ -109,10 +112,11 @@ def arg_parser(flags):
     flags['number'] = args.N
     flags['headless'] = args.head
     flags['parallel'] = args.parallel
+    flags['thread'] = args.thread
 
 def main():
     SYS_STATUS = 0
-    flags = {'followers':False,'media':False,'likes':True,'headless':True,'target':"i",'userID':False,'password':False,'number':20, 'parallel':False}
+    flags = {'followers':False,'media':False,'likes':True,'headless':True,'target':"i",'userID':False,'password':False,'number':20, 'parallel':False, 'thread':False}
     arg_parser(flags)
     if flags['userID'] == False or flags['password'] == False:
         userID = input('Please, input your userID:')
@@ -182,7 +186,12 @@ def main():
         i=0
         print("Picture downloading...")
         if flags['parallel']:
-            Parallel(n_jobs=-1, verbose=10)( [delayed(multi_download)(pic_url, get_limit, file_dir) for pic_url in picture_urls[:get_limit]] )
+            if flags['thread']:
+                parallelize = 'threading'
+            else:
+                parallelize = 'loky'
+            with parallel_backend(parallelize, n_jobs=-1):
+                Parallel(verbose=10)( [delayed(multi_download)(pic_url, get_limit, file_dir) for pic_url in picture_urls[:get_limit]] )
         else:
             for pic_url in picture_urls:
                 if i >= get_limit:
