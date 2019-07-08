@@ -38,7 +38,7 @@ def twitterLogin(user_info, driver, flags):
             document.body.scrollHeight);")
     userID_box.submit()
 
-    pattern = re.compile("https://twitter.com/login/")
+    pattern = re.compile(".*login.*")
     find_login_err = pattern.match(driver.current_url)
     if find_login_err:
         print("wrong userID or password")
@@ -49,7 +49,7 @@ def twitterLogin(user_info, driver, flags):
         return -1
     else:
         print("Login succeeded!")
-        
+
         return 0
 
 
