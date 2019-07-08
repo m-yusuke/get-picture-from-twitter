@@ -186,8 +186,12 @@ def store_Id_Password(flags):
             'password': ""
             }
 
-    if not flags['userID'] or not flags['password']:
+    if not flags['userID'] and not flags['password']:
         user_info['userID'] = input('Please, input your userID:')
+        user_info['password'] = getpass('Please, input your password:')
+    elif not flags['userID'] and not flags['login_retry']:
+        user_info['userID'] = input('Please, input your userID:')
+    elif not flags['password'] and not flags['login_retry']:
         user_info['password'] = getpass('Please, input your password:')
     elif flags['login_retry']:
         user_info['userID'] = input('Please, input your userID:')
