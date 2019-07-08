@@ -2,3 +2,5 @@
 pictures/
 *.swp
 *.zip
+.python-version
+chromedriver

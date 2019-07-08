@@ -9,35 +9,46 @@ from bs4 import BeautifulSoup
 from selenium.webdriver.chrome.options import Options
 import traceback
 import requests
-import getopt
 import argparse
 from joblib import parallel_backend, Parallel, delayed
+import chromedriver_binary
+
 
 def setDriver(options=None):
-    driver = webdriver.Chrome(executable_path='./chromedriver',options=options)
+    driver = webdriver.Chrome(options=options)
     return driver
 
-def twitterLogin(userID, password,driver):
-    driver.get("https://twitter.com")
-    userID_box = driver.find_element_by_name("session[username_or_email]")
-    driver.execute_script('document.getElementsByName("session[username_or_email]")[0].setAttribute("value","' + userID + '");')
-    password_box = driver.find_element_by_name("session[password]")
-    driver.execute_script('document.getElementsByName("session[password]")[0].setAttribute("value","' + password + '");')
-    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
+def twitterLogin(userID, password, driver):
     try:
+        driver.get("https://twitter.com")
+        userID_box = driver.find_element_by_name("session[username_or_email]")
+        driver.execute_script(
+                'document.getElementsByName\
+                        ("session[username_or_email]")[0]\
+                        .setAttribute("value","'
+                + userID + '");'
+                )
+        password_box = driver.find_element_by_name("session[password]")
+        driver.execute_script(
+                'document.getElementsByName\
+                        ("session[password]")[0].setAttribute("value","'
+                + password + '");'
+                )
+        driver.execute_script("window.scrollTo(0, \
+                document.body.scrollHeight);")
         userID_box.submit()
-        
+
         pattern = re.compile("https://twitter.com/login/")
         find_login_err = pattern.match(driver.current_url)
-        if find_login_err != None:
+        if find_login_err:
             sys.stderr.write("wrong userID or password")
             driver.quit()
-            #sys.exit(1)
-    except:
-        print("hoge")
+    except Exception:
         sys.exit()
 
-def download_img(url,file_dir):
+
+def download_img(url, file_dir):
     r = requests.get(url, stream=True)
     file_name = file_dir + url.split('/')[-1]
     if r.status_code == 200 and (not os.path.exists(file_name)):
@@ -47,11 +58,13 @@ def download_img(url,file_dir):
         print("")
         print("'{0}'is already exist".format(file_name))
 
-def multi_download(url, get_limit, file_dir):
-        download_img(url,file_dir)
 
-def get_urls(tweet, picture_urls,flags):
-    date = tweet.find('a',class_='tweet-timestamp')['title']
+def multi_download(url, get_limit, file_dir):
+    download_img(url, file_dir)
+
+
+def get_urls(tweet, picture_urls, flags):
+    date = tweet.find('a', class_='tweet-timestamp')['title']
     img = tweet.find_all('div', class_='js-adaptive-photo')
     tweet_data = tweet.find(class_='tweet')
     follower = tweet_data['data-follows-you']
@@ -63,6 +76,7 @@ def get_urls(tweet, picture_urls,flags):
     for pic_url in img:
         picture_urls.append(pic_url['data-image-url'])
 
+
 def get_limit_number(limit_number):
     if limit_number == "":
         limit_number = 20
@@ -73,35 +87,81 @@ def get_limit_number(limit_number):
         sys.exit(1)
     return limit_number
 
+
 def arg_parser(flags):
-    parser = argparse.ArgumentParser(description="This is the program for download from tweet with picture")
+    parser = argparse.ArgumentParser(
+            description="This is the program \
+                    for download from tweet with picture"
+            )
     group = parser.add_mutually_exclusive_group()
-    parser.add_argument('-H', "--head",
+    parser.add_argument(
+            '-H',
+            "--head",
             help='display browser.(default:False)',
-            action = "store_false",default = True)
-    parser.add_argument("--parallel",
+            action="store_false",
+            default=True
+            )
+    parser.add_argument(
+            "--parallel",
             help='Parallelize download.(default:False)',
-            action = "store_true",default = False)
-    parser.add_argument("--thread",
-            help='do with multi thread. use with --parallel option(default:False)',
-            action = "store_true",default = False)
-    parser.add_argument('-f', "--followers",
+            action="store_true",
+            default=False
+            )
+    parser.add_argument(
+            "--thread",
+            help='do with multi thread. \
+                    use with --parallel option(default:False)',
+            action="store_true",
+            default=False
+            )
+    parser.add_argument(
+            '-f',
+            "--followers",
             help='adapt to followers tweet.(default:False)',
-            action = "store_true")
-    group.add_argument('-m', "--media",
-            help='download target\'s media tweet. Don\'t use with -l option. (default:False)',
-            action = "store_true",default = False)
-    group.add_argument('-l', "--likes",
-            help='download target\'s likes tweet. Don\'t use with -m option.(default:True)',
-            action = "store_true",default = True)
-    parser.add_argument('-t', "--target",
-            help='set download target.(default:i)',default = "i")
-    parser.add_argument('-u',"--user",dest='UserID',
-            help='set your twitter userID.',default = False)
-    parser.add_argument('-p',"--password",dest='Password',
-            help='set your twitter password.',default = False)
-    parser.add_argument('-n','--number',dest='N',
-            help='set number of download.',type=int,default = -1)
+            action="store_true"
+            )
+    group.add_argument(
+            '-m',
+            "--media",
+            help='download target\'s media tweet. \
+                    Don\'t use with -l option. (default:False)',
+            action="store_true",
+            default=False
+            )
+    group.add_argument(
+            '-l',
+            "--likes",
+            help='download target\'s likes tweet. \
+                    Don\'t use with -m option.(default:True)',
+            action="store_true",
+            default=True
+            )
+    parser.add_argument(
+            '-t',
+            "--target",
+            help='set download target.(default:i)',
+            default="i"
+            )
+    parser.add_argument(
+            '-u',
+            "--user",
+            dest='UserID',
+            help='set your twitter userID.',
+            default=False
+            )
+    parser.add_argument(
+            '-p',
+            "--password",
+            dest='Password',
+            help='set your twitter password.',
+            default=False)
+    parser.add_argument(
+            '-n',
+            '--number',
+            dest='N',
+            help='set number of download.',
+            type=int,
+            default=-1)
     args = parser.parse_args()
     flags['followers'] = args.followers
     flags['media'] = args.media
@@ -114,11 +174,23 @@ def arg_parser(flags):
     flags['parallel'] = args.parallel
     flags['thread'] = args.thread
 
+
 def main():
     SYS_STATUS = 0
-    flags = {'followers':False,'media':False,'likes':True,'headless':True,'target':"i",'userID':False,'password':False,'number':20, 'parallel':False, 'thread':False}
+    flags = {
+            'followers': False,
+            'media': False,
+            'likes': True,
+            'headless': True,
+            'target': "i",
+            'userID': False,
+            'password': False,
+            'number': 20,
+            'parallel': False,
+            'thread': False
+            }
     arg_parser(flags)
-    if flags['userID'] == False or flags['password'] == False:
+    if not flags['userID'] or not flags['password']:
         userID = input('Please, input your userID:')
         password = getpass('Please, input your password:')
     else:
@@ -138,8 +210,8 @@ def main():
         if flags['headless']:
             options.add_argument('--headless')
         driver = setDriver(options)
-        
-        twitterLogin(userID,password,driver)
+
+        twitterLogin(userID, password, driver)
 
         twitter_url = "https://twitter.com/"
 
@@ -153,37 +225,43 @@ def main():
             target = media
 
         url = twitter_url + flags['target'] + target
-        
+
         driver.get(url)
-        
+
         print("Scanning Timeline...")
         i = 0
         while True:
-            if len(driver.find_elements_by_css_selector(".js-stream-item.stream-item.stream-item")) >= get_limit:
+            if len(driver.find_elements_by_css_selector(
+                    ".js-stream-item.stream-item.stream-item"
+                    )) >= get_limit:
                 break
-            media_end_elem = driver.find_element_by_css_selector("#timeline > div > div.stream > div.stream-footer > div > div.stream-end")
+            media_end_elem = driver.find_element_by_css_selector(
+                    "#timeline > div > div.stream > div.stream-footer \
+                    > div > div.stream-end")
             if media_end_elem is None or media_end_elem.is_displayed():
                 break
-            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            i+=1
+            driver.execute_script(
+                    "window.scrollTo(0, document.body.scrollHeight);"
+                    )
+            i += 1
 
         print("Scan Complete")
 
         soup = BeautifulSoup(driver.page_source, "html5lib")
 
         timeline = soup.select(".js-stream-item.stream-item.stream-item")
-        
+
         j = 0
         picture_urls = []
         for tweet in timeline:
             try:
                 if j >= get_limit:
                     break
-                get_urls(tweet, picture_urls,flags)
-                j+=1
+                get_urls(tweet, picture_urls, flags)
+                j += 1
             except TypeError:
                 continue
-        i=0
+        i = 0
         print("Picture downloading...")
         if flags['parallel']:
             if flags['thread']:
@@ -191,24 +269,31 @@ def main():
             else:
                 parallelize = 'loky'
             with parallel_backend(parallelize, n_jobs=-1):
-                Parallel(verbose=10)( [delayed(multi_download)(pic_url, get_limit, file_dir) for pic_url in picture_urls[:get_limit]] )
+                Parallel(verbose=10)(
+                        [delayed(multi_download)(
+                            pic_url,
+                            get_limit,
+                            file_dir
+                            )
+                            for pic_url in picture_urls[:get_limit]])
         else:
             for pic_url in picture_urls:
                 if i >= get_limit:
                     break
-                download_img(pic_url,file_dir)
-                print("\r{0:d}(done)/{1:d}".format(i+1,get_limit),end="")
-                i+=1
+                download_img(pic_url, file_dir)
+                print("\r{0:d}(done)/{1:d}".format(i+1, get_limit), end="")
+                i += 1
             print("")
         print("Download Complete")
 
-    except:
+    except Exception:
         print(traceback.format_exc())
         SYS_STATUS = 1
 
     finally:
         driver.quit()
         sys.exit(SYS_STATUS)
+
 
 if __name__ == '__main__':
     main()
