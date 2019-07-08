@@ -19,33 +19,38 @@ def setDriver(options=None):
     return driver
 
 
-def twitterLogin(userID, password, driver):
-    try:
-        driver.get("https://twitter.com")
-        userID_box = driver.find_element_by_name("session[username_or_email]")
-        driver.execute_script(
-                'document.getElementsByName\
-                        ("session[username_or_email]")[0]\
-                        .setAttribute("value","'
-                + userID + '");'
-                )
-        password_box = driver.find_element_by_name("session[password]")
-        driver.execute_script(
-                'document.getElementsByName\
-                        ("session[password]")[0].setAttribute("value","'
-                + password + '");'
-                )
-        driver.execute_script("window.scrollTo(0, \
-                document.body.scrollHeight);")
-        userID_box.submit()
+def twitterLogin(user_info, driver, flags):
+    driver.get("https://twitter.com")
+    userID_box = driver.find_element_by_name("session[username_or_email]")
+    driver.execute_script(
+            'document.getElementsByName\
+                    ("session[username_or_email]")[0]\
+                    .setAttribute("value","'
+            + user_info['userID'] + '");'
+            )
+    password_box = driver.find_element_by_name("session[password]")
+    driver.execute_script(
+            'document.getElementsByName\
+                    ("session[password]")[0].setAttribute("value","'
+            + user_info['password'] + '");'
+            )
+    driver.execute_script("window.scrollTo(0, \
+            document.body.scrollHeight);")
+    userID_box.submit()
 
-        pattern = re.compile("https://twitter.com/login/")
-        find_login_err = pattern.match(driver.current_url)
-        if find_login_err:
-            sys.stderr.write("wrong userID or password")
-            driver.quit()
-    except Exception:
-        sys.exit()
+    pattern = re.compile("https://twitter.com/login/")
+    find_login_err = pattern.match(driver.current_url)
+    if find_login_err:
+        print("wrong userID or password")
+        print("Please try again")
+
+        flags['login_retry'] = True
+
+        return -1
+    else:
+        print("Login succeeded!")
+        
+        return 0
 
 
 def download_img(url, file_dir):
@@ -175,6 +180,25 @@ def arg_parser(flags):
     flags['thread'] = args.thread
 
 
+def store_Id_Password(flags):
+    user_info = {
+            'userID': "",
+            'password': ""
+            }
+
+    if not flags['userID'] or not flags['password']:
+        user_info['userID'] = input('Please, input your userID:')
+        user_info['password'] = getpass('Please, input your password:')
+    elif flags['login_retry']:
+        user_info['userID'] = input('Please, input your userID:')
+        user_info['password'] = getpass('Please, input your password:')
+    else:
+        user_info['userID'] = flags['userID']
+        user_info['password'] = flags['password']
+
+    return user_info
+
+
 def main():
     SYS_STATUS = 0
     flags = {
@@ -187,15 +211,21 @@ def main():
             'password': False,
             'number': 20,
             'parallel': False,
-            'thread': False
+            'thread': False,
+            'login_retry': False
             }
     arg_parser(flags)
-    if not flags['userID'] or not flags['password']:
-        userID = input('Please, input your userID:')
-        password = getpass('Please, input your password:')
-    else:
-        userID = flags['userID']
-        password = flags['password']
+    options = Options()
+    if flags['headless']:
+        options.add_argument('--headless')
+    driver = setDriver(options)
+
+    login_status = -1
+
+    while login_status == -1:
+        user_info = store_Id_Password(flags)
+        login_status = twitterLogin(user_info, driver, flags)
+
     if flags['number'] == -1:
         get_limit = input('Please, input number of download:')
         get_limit = get_limit_number(get_limit)
@@ -206,13 +236,6 @@ def main():
         os.mkdir(file_dir)
 
     try:
-        options = Options()
-        if flags['headless']:
-            options.add_argument('--headless')
-        driver = setDriver(options)
-
-        twitterLogin(userID, password, driver)
-
         twitter_url = "https://twitter.com/"
 
         media = "/media"
