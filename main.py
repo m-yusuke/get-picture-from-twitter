@@ -155,6 +155,12 @@ def arg_parser(flags):
             default=False
             )
     parser.add_argument(
+            '-d',
+            dest='dirName',
+            help='set optional directory name.',
+            default="./pictures/"
+            )
+    parser.add_argument(
             '-p',
             "--password",
             dest='Password',
@@ -178,6 +184,7 @@ def arg_parser(flags):
     flags['headless'] = args.head
     flags['parallel'] = args.parallel
     flags['thread'] = args.thread
+    flags['dir'] = args.dirName
 
 
 def store_Id_Password(flags):
@@ -216,13 +223,22 @@ def main():
             'number': 20,
             'parallel': False,
             'thread': False,
-            'login_retry': False
+            'login_retry': False,
+            'dir': "./pictures/"
             }
     arg_parser(flags)
     options = Options()
     if flags['headless']:
         options.add_argument('--headless')
     driver = setDriver(options)
+    
+    file_dir = flags['dir']
+    
+    if not os.path.exists(file_dir):
+        os.mkdir(file_dir)
+    elif not os.path.isdir(file_dir):
+        print("{0} is not directory.".format(file_dir))
+        sys.exit(1)
 
     login_status = -1
 
@@ -235,9 +251,6 @@ def main():
         get_limit = get_limit_number(get_limit)
     else:
         get_limit = flags['number']
-    file_dir = './pictures/'
-    if not os.path.exists(file_dir):
-        os.mkdir(file_dir)
 
     try:
         twitter_url = "https://twitter.com/"
