@@ -54,3 +54,21 @@ def get_urls(tweet, picture_urls, flags):
     userName = tweet_data['data-name']
     for pic_url in img:
         picture_urls.append(pic_url['data-image-url'])
+
+
+def scan_timeline(get_limit, driver):
+    i = 0
+    while True:
+        if len(driver.find_elements_by_css_selector(
+                        ".js-stream-item.stream-item.stream-item"
+                        )) >= get_limit:
+            break
+        media_end_elem = driver.find_element_by_css_selector(
+                "#timeline > div > div.stream > div.stream-footer \
+                > div > div.stream-end")
+        if media_end_elem is None or media_end_elem.is_displayed():
+            break
+        driver.execute_script(
+                "window.scrollTo(0, document.body.scrollHeight);"
+                )
+        i += 1

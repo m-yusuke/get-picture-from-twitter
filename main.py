@@ -2,7 +2,6 @@
 import html5lib
 from bs4 import BeautifulSoup
 from selenium.webdriver.chrome.options import Options
-from joblib import parallel_backend, Parallel, delayed
 # standard Library
 import sys
 import os
@@ -35,9 +34,9 @@ def main():
     if flags['headless']:
         options.add_argument('--headless')
     driver = ctrltwi.setDriver(options)
-    
+
     file_dir = flags['dir']
-    
+
     if not os.path.exists(file_dir):
         os.mkdir(file_dir)
     elif not os.path.isdir(file_dir):
@@ -73,21 +72,8 @@ def main():
         driver.get(url)
 
         print("Scanning Timeline...")
-        i = 0
-        while True:
-            if len(driver.find_elements_by_css_selector(
-                    ".js-stream-item.stream-item.stream-item"
-                    )) >= get_limit:
-                break
-            media_end_elem = driver.find_element_by_css_selector(
-                    "#timeline > div > div.stream > div.stream-footer \
-                    > div > div.stream-end")
-            if media_end_elem is None or media_end_elem.is_displayed():
-                break
-            driver.execute_script(
-                    "window.scrollTo(0, document.body.scrollHeight);"
-                    )
-            i += 1
+        
+        ctrltwi.scan_timeline(get_limit,driver)
 
         print("Scan Complete")
 
@@ -112,14 +98,12 @@ def main():
                 parallelize = 'threading'
             else:
                 parallelize = 'loky'
-            with parallel_backend(parallelize, n_jobs=-1):
-                Parallel(verbose=10)(
-                        [delayed(downloader.multi_download)(
-                            pic_url,
-                            get_limit,
-                            file_dir
-                            )
-                            for pic_url in picture_urls[:get_limit]])
+            downloader.parallel_proc(
+                    parallelize,
+                    pic_url,
+                    get_limit,
+                    file_dir
+                    )
         else:
             for pic_url in picture_urls:
                 if i >= get_limit:
