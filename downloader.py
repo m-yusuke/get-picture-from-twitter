@@ -28,3 +28,18 @@ def parallel_proc(parallelize, picture_urls, get_limit, file_dir, degree_of_para
                             file_dir
                             )
                             for pic_url in picture_urls[:get_limit]])
+
+if __name__ == '__main__':
+    import sys
+    args = sys.argv
+    file_dir = "../tmp"
+    if len(args) < 2:
+        print("file not inputted")
+    else:
+        if os.path.exists(args[1]):
+            with open(args[1], 'r') as f:
+                picture_urls = [s.strip() for s in f.readlines()]
+                for pic_url in picture_urls:
+                    download_img(pic_url, file_dir)
+        else:
+            print("No such file or directory")
