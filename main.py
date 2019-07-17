@@ -28,7 +28,8 @@ def main():
             'thread': False,
             'login_retry': False,
             'dir': "./pictures/",
-            'dop': -1
+            'dop': -1,
+            'remote': False
             }
     argparser.arg_parser(flags)
     options = Options()
@@ -94,7 +95,11 @@ def main():
                 continue
         i = 0
         print("Picture downloading...")
-        if flags['parallel']:
+        if flags['remote']:
+            with open("tmp.txt", 'w') as f:
+                for pic_url in picture_urls:
+                    f.write(pic_url + '\n')
+        elif flags['parallel']:
             if flags['thread']:
                 parallelize = 'threading'
             else:

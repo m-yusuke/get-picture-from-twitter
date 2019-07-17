@@ -21,6 +21,12 @@ def arg_parser(flags):
             default=False
             )
     parser.add_argument(
+            "--remote",
+            help='remote download.(default:False)',
+            action="store_true",
+            default=False
+            )
+    parser.add_argument(
             "--thread",
             help='do with multi thread. \
                     use with --parallel option(default:False)',
@@ -100,3 +106,4 @@ def arg_parser(flags):
     flags['thread'] = args.thread
     flags['dir'] = args.dirName
     flags['dop'] = args.DOP
+    flags['remote'] = args.remote
