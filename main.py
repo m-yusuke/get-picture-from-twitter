@@ -27,7 +27,8 @@ def main():
             'parallel': False,
             'thread': False,
             'login_retry': False,
-            'dir': "./pictures/"
+            'dir': "./pictures/",
+            'dop': -1
             }
     argparser.arg_parser(flags)
     options = Options()
@@ -102,7 +103,8 @@ def main():
                     parallelize,
                     picture_urls,
                     get_limit,
-                    file_dir
+                    file_dir,
+                    flags['dop']
                     )
         else:
             for pic_url in picture_urls:

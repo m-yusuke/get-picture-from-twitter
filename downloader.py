@@ -19,8 +19,8 @@ def download_img(url, file_dir):
 def multi_download(url, get_limit, file_dir):
     download_img(url, file_dir)
 
-def parallel_proc(parallelize, picture_urls, get_limit, file_dir):
-    with parallel_backend(parallelize, n_jobs=-1):
+def parallel_proc(parallelize, picture_urls, get_limit, file_dir, degree_of_parallelism):
+    with parallel_backend(parallelize, n_jobs=degree_of_parallelism):
                 Parallel(verbose=10)(
                         [delayed(multi_download)(
                             pic_url,

@@ -81,6 +81,12 @@ def arg_parser(flags):
             help='set number of download.',
             type=int,
             default=-1)
+    parser.add_argument(
+            '--degree',
+            dest='DOP',
+            help='set degree of parallelism.',
+            type=int,
+            default=-1)
     args = parser.parse_args()
     flags['followers'] = args.followers
     flags['media'] = args.media
@@ -93,3 +99,4 @@ def arg_parser(flags):
     flags['parallel'] = args.parallel
     flags['thread'] = args.thread
     flags['dir'] = args.dirName
+    flags['dop'] = args.DOP
