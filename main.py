@@ -100,7 +100,7 @@ def main():
                 parallelize = 'loky'
             downloader.parallel_proc(
                     parallelize,
-                    pic_url,
+                    picture_urls,
                     get_limit,
                     file_dir
                     )
