@@ -27,6 +27,11 @@ def arg_parser(flags):
             default=False
             )
     parser.add_argument(
+            "--address",
+            help='set the url file destination ip address ',
+            nargs='*'
+            )
+    parser.add_argument(
             "--thread",
             help='do with multi thread. \
                     use with --parallel option(default:False)',
@@ -107,3 +112,4 @@ def arg_parser(flags):
     flags['dir'] = args.dirName
     flags['dop'] = args.DOP
     flags['remote'] = args.remote
+    flags['address'] = args.address

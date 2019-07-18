@@ -2,6 +2,7 @@
 import html5lib
 from bs4 import BeautifulSoup
 from selenium.webdriver.chrome.options import Options
+from joblib import parallel_backend, Parallel, delayed
 # standard Library
 import sys
 import os
@@ -11,6 +12,7 @@ import ctrltwi
 import downloader
 import storeinfo
 import argparser
+import send
 
 
 def main():
@@ -29,7 +31,8 @@ def main():
             'login_retry': False,
             'dir': "./pictures/",
             'dop': -1,
-            'remote': False
+            'remote': False,
+            'address': []
             }
     argparser.arg_parser(flags)
     options = Options()
@@ -96,9 +99,13 @@ def main():
         i = 0
         print("Picture downloading...")
         if flags['remote']:
-            with open("tmp.txt", 'w') as f:
+            urlfile = "tmp.txt"
+            with open(urlfile, 'w') as f:
                 for pic_url in picture_urls:
                     f.write(pic_url + '\n')
+
+            send.send_file_master(flags, urlfile)
+
         elif flags['parallel']:
             if flags['thread']:
                 parallelize = 'threading'
