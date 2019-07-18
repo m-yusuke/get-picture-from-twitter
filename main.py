@@ -104,7 +104,7 @@ def main():
                 for pic_url in picture_urls:
                     f.write(pic_url + '\n')
 
-            send.send_file_master(flags, urlfile)
+            #send.send_file_master(flags, urlfile)
 
         elif flags['parallel']:
             if flags['thread']:
