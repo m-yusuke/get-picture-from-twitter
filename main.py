@@ -32,7 +32,7 @@ def main():
             }
     argparser.arg_parser(flags)
     options = Options()
-    options.add_extension("./1.2_0.crx")
+    #options.add_extension("./1.2_0.crx")
     if flags['headless']:
         options.add_argument('--headless')
     driver = ctrltwi.setDriver(options)
@@ -72,7 +72,18 @@ def main():
 
         url = twitter_url + flags['target'] + target
 
-        driver.get(url)
+        driver.get("https://twitter.com/i/directory/profiles")
+        driver.find_element_by_id('user-dropdown-toggle').click()
+        #input("please input 1:")
+        driver.find_element_by_css_selector("a[href = '/" + flags['target']  + "']").click()
+        driver.find_element_by_css_selector("a[href = '#more']").click()
+        if driver.find_element_by_css_selector("a[href = '/i/likes']").is_displayed():
+            driver.find_element_by_css_selector("a[href = '/i/likes']").click()
+        else:
+            driver.find_elements_by_css_selector("a[href = '/i/likes']")[1].click()
+        # driver.get(url)
+
+        #driver.find_element_by_css_selector("div[role = 'button']").click()
 
         print("Scanning Timeline...")
         
