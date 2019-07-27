@@ -32,9 +32,11 @@ def main():
             }
     argparser.arg_parser(flags)
     options = Options()
+    options.add_extension("./1.2_0.crx")
     if flags['headless']:
         options.add_argument('--headless')
     driver = ctrltwi.setDriver(options)
+    driver.implicitly_wait(10)
 
     file_dir = flags['dir']
 
