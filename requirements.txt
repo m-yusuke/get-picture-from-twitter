@@ -2,5 +2,5 @@ bs4==0.0.1
 chromedriver-binary==75.0.3770.8.0
 html5lib==1.0.1
 joblib==0.13.1
-requests==2.20.1
+requests==2.31.0
 selenium==3.141.0
